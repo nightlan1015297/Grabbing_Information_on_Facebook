@@ -10,10 +10,10 @@ about_parms = ['&section=overview','&section=education','&section=living','&sect
 
 def log_in (browser,ID,pasword):
     browser.get("https://www.facebook.com/")
-    browser.find_element_by_id("email").send_keys(ID)
-    browser.find_element_by_id("pass").send_keys(pasword)
+    browser.find_element_by_id("email").send_keys(ID)           #For log in to the Facebook to get the permit access the Friend List
+    browser.find_element_by_id("pass").send_keys(pasword)       
     browser.find_element_by_id("loginbutton").click()
-    time.sleep(1)
+    time.sleep(1)                                               #Waiting for the Internet delay
 
 def Scrol_down(browser):
     flag = True
@@ -21,16 +21,18 @@ def Scrol_down(browser):
     while flag:
         num +=1
         start = browser.page_source
-        browser.execute_script('window.scrollTo(0, document.body.scrollHeight);')
-        time.sleep(0.5)
-        stop = browser.page_source
-        if start==stop:
-            flag = False
+        browser.execute_script('window.scrollTo(0, document.body.scrollHeight);') # JS code to scroll to bottom
+        time.sleep(0.5)                                                           # Waiting for the Internet delay ,
+                                                                                  # to increase the speed scroling down we set delay to 0.5sec but this Sometimes may cause some problem (Page didn't Updata Ready) 
+        
+        stop = browser.page_source                                                
+        if start==stop:                                                           # Compare the Site Sources between scrol_down before and after 
+            flag = False                                                          # If they are the same this means it have been scrol to the "End"(NO MORE UPDATE)      
         print("Page Updated Times :", num )
 
 def Get_friends_info(browser,Profile_ID):
-    browser.get('https://www.facebook.com/'+Profile_ID+const_friends)
-    Scrol_down(browser)
+    browser.get('https://www.facebook.com/'+Profile_ID+const_friends)             # This is the link that can connect to the Friend link via Facebook Profile ID
+    Scrol_down(browser)                                                           # Scrol down to the End to get the Fully Page's sources to get the Friend List
     sourse = browser.page_source
     soup = BeautifulSoup(sourse,features="lxml")
     friends = soup.select('#pagelet_timeline_medley_friends')[0].find_all("li", class_= ["_698"])
@@ -119,23 +121,23 @@ def main():
     pas = input("Type Your Password:")
     root_id = input("Type Your User_ID (make sure the ID is same as the account you login last step):")
     chrome_options = webdriver.ChromeOptions()
-    chrome_options.add_argument('--headless') # 啟動無頭模式
-    chrome_options.add_argument('--disable-gpu') # windowsd必須加入此行
+    chrome_options.add_argument('--headless')       # Open Headless Mode
+    chrome_options.add_argument('--disable-gpu')    # Disable GPU
     
     browser = webdriver.Chrome("C:\\Users\\win10\\Desktop\\PROGRAM\\HACK\\chromedriver.exe",chrome_options=chrome_options)
     log_in(browser,email,pas)
-    if os.path.isfile("Root_Json.json"):
-        with open("Root_Json.json","r") as f:
-            Friend_Json = json.loads(f.read())
+    if os.path.isfile("Root_Json.json"):            # Root means the Root Person (Who is using this Program) and this is the condition that RootJson is exist or not
+        with open("Root_Json.json","r") as f:       # We only need to remember root's Friend list do Root_JSON.json is the File to Save Root's Friend List
+            Friend_Json = json.loads(f.read())      # Read the File in to Program
     else:
         print("Creating Root Account Data (This may Take a long Time according the number of friends of your Account)")
-        start_time = int(time.time())
+        start_time = int(time.time())               # Record the Progress Time (in my case 700+ Friends Parse almost 160 sec)
         Friend_Json = Get_friends_info(browser,root_id)
         stop_time = int(time.time())
-        with open("Root_Json.json", 'w') as f:
+        with open("Root_Json.json", 'w') as f:      # Save the result into File to Keep the Friend List in local
             f.write(Friend_Json)
         print("Done ["+str(stop_time - start_time)+' sec]')    
-    print(Friend_Json)
+    print(Friend_Json)                              # Print out for debugging no any reason 
 
 
 main()
